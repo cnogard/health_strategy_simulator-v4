@@ -1,0 +1,6 @@
+streamlit
+pandas
+numpy
+xlsxwriter
+matplotlib>=3.0
+reportlab
