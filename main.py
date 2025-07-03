@@ -181,7 +181,7 @@ with tab0:
 
     st.success("Ready? Use the sidebar or click above to start Step 1.")
 
-faq_path = "faq.md"
+faq_path = "FAQ.md"
 if os.path.exists(faq_path):
     with open(faq_path, "r") as f:
         st.markdown(f.read())
