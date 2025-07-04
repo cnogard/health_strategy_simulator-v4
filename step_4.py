@@ -152,8 +152,8 @@ def run_step_4(tab4):
             st.error("⚠️ Data mismatch: Please ensure Step 2 has been completed and submitted.")
             return
 
-        # All three charts in one row
-        fig, axs = plt.subplots(1, 3, figsize=(24, 5))
+        # All three charts stacked vertically for mobile readability
+        fig, axs = plt.subplots(3, 1, figsize=(10, 18))
 
         # Annual Expenditures (stacked)
         axs[0].bar(ages, household_proj, label='Household')

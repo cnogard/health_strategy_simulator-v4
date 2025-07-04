@@ -93,68 +93,64 @@ def run_step_5(tab6):
                 st.session_state["average_healthcare_pct"] = average_healthcare_pct
                 current_healthcare_pct = expense_df.iloc[0]["Healthcare %"]
 
-                # --- Pie charts block ---
+                # --- Vertical Pie charts block for mobile ---
                 import matplotlib.pyplot as plt
 
-                col_l, col_divider, col_m, col_r = st.columns([1.2, 0.1, 1.2, 1.2])
+                # 1. Lifetime Health Risk
+                st.markdown("**Lifetime Health Risk**")
+                fig_lifetime, ax_lifetime = plt.subplots(figsize=(1.5, 1.5))
+                wedges, texts, autotexts = ax_lifetime.pie(
+                    [lifetime_risk, 1 - lifetime_risk],
+                    labels=["", ""],
+                    autopct=lambda pct: f"{lifetime_risk:.0%}" if pct > 1 and pct > 50 else "",
+                    startangle=90,
+                    colors=["#ff9999", "#f0f0f0"],
+                    textprops={'fontsize': 6, 'weight': 'bold'}
+                )
+                for txt in texts:
+                    txt.set_text("")
+                for i, autotxt in enumerate(autotexts):
+                    autotxt.set_text(f"{lifetime_risk:.0%}" if i == 0 else "")
+                ax_lifetime.axis("equal")
+                st.pyplot(fig_lifetime)
 
-                with col_l:
-                    st.markdown("**Lifetime Health Risk**")
-                    fig_lifetime, ax_lifetime = plt.subplots(figsize=(1.5, 1.5))
-                    wedges, texts, autotexts = ax_lifetime.pie(
-                        [lifetime_risk, 1 - lifetime_risk],
-                        labels=["", ""],
-                        autopct=lambda pct: f"{lifetime_risk:.0%}" if pct > 1 and pct > 50 else "",
-                        startangle=90,
-                        colors=["#ff9999", "#f0f0f0"],
-                        textprops={'fontsize': 6, 'weight': 'bold'}
-                    )
-                    for txt in texts:
-                        txt.set_text("")
-                    for i, autotxt in enumerate(autotexts):
-                        autotxt.set_text(f"{lifetime_risk:.0%}" if i == 0 else "")
-                    ax_lifetime.axis("equal")
-                    st.pyplot(fig_lifetime)
+                # 2. Current Healthcare % of Total Expenses
+                st.markdown("**Current Healthcare % of Total Expenses:**")
+                fig_cur, ax_cur = plt.subplots(figsize=(1.5, 1.5))
+                wedges, texts, autotexts = ax_cur.pie(
+                    [current_healthcare_pct / 100, 1 - (current_healthcare_pct / 100)],
+                    labels=["", ""],
+                    autopct=lambda pct: f"{current_healthcare_pct:.0f}%" if pct > 1 and pct > 50 else "",
+                    startangle=90,
+                    colors=["#66b3ff", "#f0f0f0"],
+                    textprops={'fontsize': 6, 'weight': 'bold'}
+                )
+                for txt in texts:
+                    txt.set_text("")
+                for i, autotxt in enumerate(autotexts):
+                    autotxt.set_text(f"{current_healthcare_pct:.0f}%" if i == 0 else "")
+                ax_cur.axis("equal")
+                st.pyplot(fig_cur)
 
-                with col_divider:
-                    st.markdown("<div style='height: 120px; border-left: 1px solid #ccc;'></div>", unsafe_allow_html=True)
+                # 3. Average Healthcare % of Total Expenses
+                st.markdown("**Average Healthcare % of Total Expenses:**")
+                fig_avg, ax_avg = plt.subplots(figsize=(1.5, 1.5))
+                wedges, texts, autotexts = ax_avg.pie(
+                    [average_healthcare_pct / 100, 1 - (average_healthcare_pct / 100)],
+                    labels=["", ""],
+                    autopct=lambda pct: f"{average_healthcare_pct:.0f}%" if pct > 1 and pct > 50 else "",
+                    startangle=90,
+                    colors=["#99ff99", "#f0f0f0"],
+                    textprops={'fontsize': 6, 'weight': 'bold'}
+                )
+                for txt in texts:
+                    txt.set_text("")
+                for i, autotxt in enumerate(autotexts):
+                    autotxt.set_text(f"{average_healthcare_pct:.0f}%" if i == 0 else "")
+                ax_avg.axis("equal")
+                st.pyplot(fig_avg)
 
-                with col_m:
-                    st.markdown("**Current Healthcare % of Total Expenses:**")
-                    fig_cur, ax_cur = plt.subplots(figsize=(1.5, 1.5))
-                    wedges, texts, autotexts = ax_cur.pie(
-                        [current_healthcare_pct / 100, 1 - (current_healthcare_pct / 100)],
-                        labels=["", ""],
-                        autopct=lambda pct: f"{current_healthcare_pct:.0f}%" if pct > 1 and pct > 50 else "",
-                        startangle=90,
-                        colors=["#66b3ff", "#f0f0f0"],
-                        textprops={'fontsize': 6, 'weight': 'bold'}
-                    )
-                    for txt in texts:
-                        txt.set_text("")
-                    for i, autotxt in enumerate(autotexts):
-                        autotxt.set_text(f"{current_healthcare_pct:.0f}%" if i == 0 else "")
-                    ax_cur.axis("equal")
-                    st.pyplot(fig_cur)
-
-                with col_r:
-                    st.markdown("**Average Healthcare % of Total Expenses:**")
-                    fig_avg, ax_avg = plt.subplots(figsize=(1.5, 1.5))
-                    wedges, texts, autotexts = ax_avg.pie(
-                        [average_healthcare_pct / 100, 1 - (average_healthcare_pct / 100)],
-                        labels=["", ""],
-                        autopct=lambda pct: f"{average_healthcare_pct:.0f}%" if pct > 1 and pct > 50 else "",
-                        startangle=90,
-                        colors=["#99ff99", "#f0f0f0"],
-                        textprops={'fontsize': 6, 'weight': 'bold'}
-                    )
-                    for txt in texts:
-                        txt.set_text("")
-                    for i, autotxt in enumerate(autotexts):
-                        autotxt.set_text(f"{average_healthcare_pct:.0f}%" if i == 0 else "")
-                    ax_avg.axis("equal")
-                    st.pyplot(fig_avg)
-
+                # Tuku image and insight directly underneath pie charts
                 st.image("Tuku_Analyst.png", width=64)
                 st.markdown("Your average healthcare spending is 12.5%, which is above the national benchmark of 8%. Consider reviewing your care plan or insurance.")
 

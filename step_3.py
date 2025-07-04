@@ -91,13 +91,13 @@ def run_step_3(tab4):
         avg_health_risk_ratio = compute_health_risk_ratio(profile)
         st.subheader("🩺 Health Risk Ratio")
 
-        # Updated: Side-by-side pie charts for Health Risk Ratios (Health Risk vs Remaining)
+        # Updated: Stacked (vertical) pie charts for Health Risk Ratios (Health Risk vs Remaining) for mobile layout
         labels = ["Health Risk", ""]
         colors = ["#FF9999", "#DDDDDD"]
         sizes1 = [risk_values[0], 1 - risk_values[0]]
         sizes2 = [weighted_avg_lifetime_risk, 1 - weighted_avg_lifetime_risk]
 
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 5))
+        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(6, 10))
         ax1.pie(
             sizes1,
             labels=labels,
