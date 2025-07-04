@@ -2,7 +2,7 @@
 
 An AI-powered app to help individuals and families plan, project, and optimize healthcare-related expenses over their lifetime — fully integrated with financial planning.
 
-🔗 **Live App:** https://health-strategy-simulator-v3-cyrnxphtxamtxch2tkyu7s.streamlit.app
+🔗 **Live App:** https://healthstrategysimulator-v4git-tnnfjqdwrbekxku6wzwvz6.streamlit.app
 
 ---
 
