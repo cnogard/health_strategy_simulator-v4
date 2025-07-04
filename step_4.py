@@ -299,8 +299,11 @@ def run_step_4(tab4):
 
             # --- Lifetime Retirement Income Sources Pie Chart and Retirement Readiness side by side ---
             st.subheader("💸 Retirement Outlook")
-            col_tuku, col_pie, col_divider, col_bar = st.columns([0.5, 1.3, 0.1, 2])
 
+            # 1. Tuku image
+            st.image("Tuku_Analyst.png", width=60)
+
+            # 2. Retirement Income Sources Pie Chart
             # Estimate Social Security: 40% of final pre-retirement income times years post-retirement
             final_income = income_proj[retirement_index - 1] if 0 <= retirement_index - 1 < len(income_proj) else 0
             estimated_ss = final_income * 0.40 * (len(income_proj) - retirement_index)
@@ -316,106 +319,99 @@ def run_step_4(tab4):
             labels = ["Social Security (est.)", "Savings", "401(k)", "Pensions"]
             values = [estimated_ss, savings_total, proj_401k_val, lifetime_pension]
 
-            with col_tuku:
-                st.image("Tuku_Analyst.png", width=60)
+            # Filter out sources with 0 value for cleaner pie chart
+            combined_sources = list(zip(labels, values))
+            filtered_sources = [(label, val) for label, val in combined_sources if val > 0]
+            if not filtered_sources:
+                st.info("No retirement income sources available to display.")
+            else:
+                filtered_labels, filtered_values = zip(*filtered_sources)
+                st.markdown("#### Retirement Income Sources")
+                fig_pie, ax_pie = plt.subplots(figsize=(1.8, 1.8))
+                def filter_autopct(pct):
+                    return f"{pct:.1f}%" if pct > 2 else ''
+                wedges, texts, autotexts = ax_pie.pie(
+                    filtered_values,
+                    labels=filtered_labels,
+                    autopct=filter_autopct,
+                    startangle=90,
+                    textprops={'fontsize': 7}
+                )
+                ax_pie.axis('equal')
+                st.pyplot(fig_pie)
 
-            with col_pie:
-                # Filter out sources with 0 value for cleaner pie chart
-                combined_sources = list(zip(labels, values))
-                filtered_sources = [(label, val) for label, val in combined_sources if val > 0]
-                if not filtered_sources:
-                    st.info("No retirement income sources available to display.")
-                else:
-                    filtered_labels, filtered_values = zip(*filtered_sources)
-                    st.markdown("#### Retirement Income Sources")
-                    fig_pie, ax_pie = plt.subplots(figsize=(1.8, 1.8))
-                    def filter_autopct(pct):
-                        return f"{pct:.1f}%" if pct > 2 else ''
-                    wedges, texts, autotexts = ax_pie.pie(
-                        filtered_values,
-                        labels=filtered_labels,
-                        autopct=filter_autopct,
-                        startangle=90,
-                        textprops={'fontsize': 7}
-                    )
-                    ax_pie.axis('equal')
-                    st.pyplot(fig_pie)
+            # 3. Retirement Readiness stacked bar chart
+            st.markdown("<div style='text-align: center;'><h4>Retirement Readiness</h4></div>", unsafe_allow_html=True)
+            st.markdown("This projection helps you plan ahead so you don’t outlive your financial resources — including savings, 401(k), and any eligible pension.")
+            # Always render retirement readiness chart for all post-retirement years, even with zero deficits
+            chart_ages = []
+            deficit_values = []
+            for i in range(len(age_series)):
+                age = age_series[i]
+                if age >= 65 and i < len(surplus):
+                    chart_ages.append(age)
+                    deficit = -surplus[i] if surplus[i] < 0 else 0
+                    deficit_values.append(deficit)
 
-            with col_divider:
-                st.markdown("<div style='height: 160px; border-left: 1px solid #ccc;'></div>", unsafe_allow_html=True)
+            if chart_ages:
+                # Use values at retirement_index for available capital
+                savings_total = savings_proj[retirement_index] if 0 <= retirement_index < len(savings_proj) else 0
+                proj_401k_val = proj_401k_combined[retirement_index] if 0 <= retirement_index < len(proj_401k_combined) else 0
+                total_pension = pension_user + pension_partner
+                total_available = savings_total + proj_401k_val + (total_pension * len(chart_ages))
 
-            with col_bar:
-                st.markdown("<div style='text-align: center;'><h4>Retirement Readiness</h4></div>", unsafe_allow_html=True)
-                st.markdown("This projection helps you plan ahead so you don’t outlive your financial resources — including savings, 401(k), and any eligible pension.")
-                # Always render retirement readiness chart for all post-retirement years, even with zero deficits
-                chart_ages = []
-                deficit_values = []
-                for i in range(len(age_series)):
-                    age = age_series[i]
-                    if age >= 65 and i < len(surplus):
-                        chart_ages.append(age)
-                        deficit = -surplus[i] if surplus[i] < 0 else 0
-                        deficit_values.append(deficit)
+                used_capital = []
+                remaining_capital = []
+                unfunded_gap = []
+                current_capital = total_available
 
-                if chart_ages:
-                    # Use values at retirement_index for available capital
-                    savings_total = savings_proj[retirement_index] if 0 <= retirement_index < len(savings_proj) else 0
-                    proj_401k_val = proj_401k_combined[retirement_index] if 0 <= retirement_index < len(proj_401k_combined) else 0
-                    total_pension = pension_user + pension_partner
-                    total_available = savings_total + proj_401k_val + (total_pension * len(chart_ages))
-
-                    used_capital = []
-                    remaining_capital = []
-                    unfunded_gap = []
-                    current_capital = total_available
-
-                    for deficit in deficit_values:
-                        if deficit > 0:
-                            used = min(deficit, current_capital)
-                            gap = max(deficit - used, 0)
-                            current_capital -= used
-                        else:
-                            used = 0
-                            gap = 0
-                        used_capital.append(used)
-                        remaining_capital.append(max(current_capital, 0))
-                        unfunded_gap.append(gap)
-
-                    surplus_remaining = remaining_capital.copy()
-
-                    df_drawdown = pd.DataFrame({
-                        "Age": chart_ages,
-                        "Capital Drawn from 401k/Savings": used_capital,
-                        "Remaining Capital": surplus_remaining,
-                        "Remaining Deficit": unfunded_gap
-                    }).set_index("Age")
-
-                    fig, ax = plt.subplots(figsize=(10, 5))
-                    df_drawdown.plot(kind='bar', stacked=True, ax=ax, width=0.8)
-                    ax.set_xticks(range(len(df_drawdown.index)))
-                    ax.set_xticklabels(df_drawdown.index, rotation=0)
-                    ax.set_title("Retirement Readiness: Capital vs. Deficit")
-                    ax.set_ylabel("Amount ($,000)")
-                    ax.yaxis.set_major_formatter(mticker.FuncFormatter(format_thousands))
-                    ax.set_xlabel("Age")
-                    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.10), ncol=3)
-                    ax.grid(axis='y')
-                    st.pyplot(fig)
-
-                    # --- Retirement Readiness Insight Summary ---
-                    if any(used_capital):
-                        if current_capital > 0:
-                            st.info(f"📉 Your retirement capital is projected to decline gradually due to healthcare needs, but remains sufficient through age **{chart_ages[-1]}**.")
-                        else:
-                            try:
-                                depletion_index = remaining_capital.index(0)
-                                depletion_age = chart_ages[depletion_index]
-                            except ValueError:
-                                depletion_age = chart_ages[-1]
-                            st.warning(f"⚠️ Your capital is projected to be depleted by age **{depletion_age}**. Consider increasing contributions or reviewing your care strategy.")
+                for deficit in deficit_values:
+                    if deficit > 0:
+                        used = min(deficit, current_capital)
+                        gap = max(deficit - used, 0)
+                        current_capital -= used
                     else:
-                        st.success("✅ Your retirement healthcare costs are fully covered without drawing down capital. You're in a strong financial position.")
+                        used = 0
+                        gap = 0
+                    used_capital.append(used)
+                    remaining_capital.append(max(current_capital, 0))
+                    unfunded_gap.append(gap)
+
+                surplus_remaining = remaining_capital.copy()
+
+                df_drawdown = pd.DataFrame({
+                    "Age": chart_ages,
+                    "Capital Drawn from 401k/Savings": used_capital,
+                    "Remaining Capital": surplus_remaining,
+                    "Remaining Deficit": unfunded_gap
+                }).set_index("Age")
+
+                fig, ax = plt.subplots(figsize=(10, 5))
+                df_drawdown.plot(kind='bar', stacked=True, ax=ax, width=0.8)
+                ax.set_xticks(range(len(df_drawdown.index)))
+                ax.set_xticklabels(df_drawdown.index, rotation=0)
+                ax.set_title("Retirement Readiness: Capital vs. Deficit")
+                ax.set_ylabel("Amount ($,000)")
+                ax.yaxis.set_major_formatter(mticker.FuncFormatter(format_thousands))
+                ax.set_xlabel("Age")
+                ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.10), ncol=3)
+                ax.grid(axis='y')
+                st.pyplot(fig)
+
+                # --- Retirement Readiness Insight Summary ---
+                if any(used_capital):
+                    if current_capital > 0:
+                        st.info(f"📉 Your retirement capital is projected to decline gradually due to healthcare needs, but remains sufficient through age **{chart_ages[-1]}**.")
+                    else:
+                        try:
+                            depletion_index = remaining_capital.index(0)
+                            depletion_age = chart_ages[depletion_index]
+                        except ValueError:
+                            depletion_age = chart_ages[-1]
+                        st.warning(f"⚠️ Your capital is projected to be depleted by age **{depletion_age}**. Consider increasing contributions or reviewing your care strategy.")
                 else:
-                    st.warning("No post-retirement years available for readiness chart.")
+                    st.success("✅ Your retirement healthcare costs are fully covered without drawing down capital. You're in a strong financial position.")
+            else:
+                st.warning("No post-retirement years available for readiness chart.")
         else:
             st.warning("Capital or expense data missing — skipping retirement readiness chart.")
