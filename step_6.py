@@ -1,6 +1,7 @@
 import streamlit as st
 from chronic_module import get_chronic_multiplier
-from cost_library import get_calibrated_cost_curve, determine_profile_type, estimate_high_risk_curve, generate_costs
+from simulator_core import generate_costs
+from cost_library import get_calibrated_cost_curve, determine_profile_type, estimate_high_risk_curve
 
 def run_step_6(tab7):
     with tab7:
