@@ -12,7 +12,24 @@ def run_step_1(tab1):
         user_age = age  # Preserve original user age
         gender = st.selectbox("Gender", ["male", "female"])
         health_status = st.selectbox("Health Status", ["healthy", "chronic", "high_risk"])
-        # (continue with rest of logic...)
+        # --- Cardiovascular Risk Factors ---
+        st.markdown("### 🧠 Cardiovascular Risk Factors (Select all that apply)")
+        has_diabetes = st.checkbox("Diabetes")
+        has_hypertension = st.checkbox("Hypertension (High Blood Pressure)")
+        has_hyperlipidemia = st.checkbox("High Cholesterol (Hyperlipidemia)")
+        is_smoker = st.checkbox("Current Smoker")
+        is_overweight = st.checkbox("Overweight or Obese")
+
+        # Save total risk factor count
+        cv_risk_factors = {
+            "diabetes": has_diabetes,
+            "hypertension": has_hypertension,
+            "hyperlipidemia": has_hyperlipidemia,
+            "smoker": is_smoker,
+            "overweight": is_overweight
+        }
+        st.session_state["cv_risk_factors"] = cv_risk_factors
+        st.session_state["cv_risk_score"] = sum(cv_risk_factors.values())
 
         # --- Chronic Condition Count (User) ---
         user_chronic_count = "None"
@@ -221,6 +238,8 @@ def run_step_1(tab1):
                 "partner_health_status": partner_health_status,
                 "family_history_user": family_history_user,
                 "family_history_partner": family_history_partner,
+                "cv_risk_factors": cv_risk_factors,
+                "cv_risk_score": sum(cv_risk_factors.values()),
             }
             st.session_state["age"] = user_age
             care_prefs = st.session_state.get("care_prefs", {})

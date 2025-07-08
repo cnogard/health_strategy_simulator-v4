@@ -1,5 +1,6 @@
 import streamlit as st
 from chronic_module import get_chronic_multiplier
+from cost_library import get_calibrated_cost_curve, determine_profile_type, estimate_high_risk_curve, generate_costs
 
 def run_step_6(tab7):
     with tab7:
@@ -125,6 +126,43 @@ def run_step_6(tab7):
         st.markdown("### 💰 Cash-Driven Capital Care Savings")
 
         cost_df = st.session_state.cost_df
+
+        # --- Option 1 Surplus Analysis ---
+        ages = cost_df["Age"].tolist()
+        calibrated_costs = generate_costs(profile, ages)
+        lifetime_paid = cost_df["OOP"].sum() + cost_df["Premium"].sum()
+        lifetime_true_cost = sum(calibrated_costs)
+        option_1_surplus = lifetime_paid - lifetime_true_cost
+
+        st.subheader("🧮 Capital Strategy Validation")
+        st.markdown(f"- Estimated Total User Payments (Premium + OOP): ${lifetime_paid:,.0f}")
+        st.markdown(f"- Estimated Actual Lifetime Healthcare Cost: ${lifetime_true_cost:,.0f}")
+
+        if option_1_surplus > 0:
+            st.success(f"🎯 **Potential Savings Opportunity**: ${option_1_surplus:,.0f} over your lifetime. A capital care strategy may improve efficiency.")
+        elif option_1_surplus < -5000:
+            st.warning("⚠️ Your projected care costs exceed what you’re paying. Review insurance coverage or explore financial safeguards.")
+        else:
+            st.info("Your payments align closely with expected care costs.")
+
+        # --- Option 1 Eligibility Based on Overpayment ---
+        option_1_eligible = option_1_surplus > 5000 and health_status == "healthy"
+        if option_1_eligible:
+            st.success("🧭 You appear to be overpaying for healthcare relative to your actual care needs. Consider **Option 1: Capital Health Fund** to redirect surplus into a care-focused savings strategy.")
+            st.session_state["option_1_eligible"] = True
+        else:
+            st.session_state["option_1_eligible"] = False
+
+        # --- Bar Chart: Lifetime Paid vs. True Cost ---
+        import matplotlib.pyplot as plt
+        fig, ax = plt.subplots(figsize=(6, 4))
+        bars = ax.bar(["What You Paid", "True Care Cost"], [lifetime_paid, lifetime_true_cost], color=["#2a7cba", "#ba2a2a"])
+        ax.set_title("Lifetime Healthcare Payments vs. Actual Cost")
+        ax.set_ylabel("Dollars ($)")
+        for bar in bars:
+            height = bar.get_height()
+            ax.annotate(f"${height:,.0f}", xy=(bar.get_x() + bar.get_width() / 2, height), xytext=(0, 5), textcoords="offset points", ha='center', va='bottom')
+        st.pyplot(fig)
         current_savings = st.session_state.get("current_savings", st.session_state.get("available_savings_after_retirement", st.session_state.get("savings_start", 0)))
         fund_source = st.session_state.get("capital_fund_source", "Select One")
 

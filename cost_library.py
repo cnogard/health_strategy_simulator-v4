@@ -110,5 +110,40 @@ def estimate_uninsured_oop_by_year(health_risk_level, year, base_full_cost=10000
 
     base_cost = base_full_costs[health_risk_level] * 0.8
     growth = growth_factors[health_risk_level]
-    estimated_oop = base_cost * growth
+    # Correction factor for 60-year window vs. original 40-year study window
+    correction_factor = 40 / 60  # scale down to match original study period
+    estimated_oop = base_cost * growth * correction_factor
     return estimated_oop
+
+
+# Calibrated cost curve for Healthy or Chronic cardiovascular profiles
+def get_calibrated_cost_curve(profile_type, years=60):
+    """
+    Returns a calibrated annual cost curve for Healthy or Chronic cardiovascular profiles.
+    Based on validated lifetime cost totals ($75.2K for Healthy, $459K for Chronic).
+    """
+    inflation = {"healthy": 0.02, "chronic": 0.03}
+    totals = {"healthy": 75200, "chronic": 459000}
+    if profile_type not in totals:
+        raise ValueError("Unsupported profile type for calibrated curve.")
+    r = inflation[profile_type]
+    base = totals[profile_type] / sum([(1 + r) ** i for i in range(years)])
+    return [base * (1 + r) ** i for i in range(years)]
+
+def determine_profile_type(cv_risk_score):
+    """
+    Map cardiovascular risk score to profile type.
+    0 = Healthy, 1–2 = Chronic, 3+ = Unclassified/High Risk
+    """
+    if cv_risk_score == 0:
+        return "healthy"
+    elif cv_risk_score in [1, 2]:
+        return "chronic"
+    else:
+        return None
+
+def estimate_high_risk_curve(years=60, base=10000, inflation=0.05):
+    """
+    Placeholder cost curve for high-risk individuals (non-cardiovascular).
+    """
+    return [base * (1 + inflation) ** i for i in range(years)]
