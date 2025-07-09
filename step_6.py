@@ -130,7 +130,8 @@ def run_step_6(tab7):
 
         # --- Option 1 Surplus Analysis ---
         ages = cost_df["Age"].tolist()
-        calibrated_costs = generate_costs(profile, ages)
+        calibrated_df = generate_costs(profile, care_preferences={})
+        calibrated_costs = calibrated_df["Healthcare Cost"].tolist()
         lifetime_paid = cost_df["OOP"].sum() + cost_df["Premium"].sum()
         lifetime_true_cost = sum(calibrated_costs)
         option_1_surplus = lifetime_paid - lifetime_true_cost
