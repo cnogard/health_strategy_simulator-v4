@@ -417,6 +417,9 @@ def run_step_1(tab1):
             if insurance_type_key == "Uninsured":
                 st.session_state.employee_premium = 0
                 st.session_state["monthly_premium"] = 0
+            # --- Capture true_costs if available ---
+            if "true_costs" in st.session_state:
+                st.session_state["step3_calibrated_costs"] = st.session_state.get("true_costs", [])
             # st.write(cost_df[["Age", "Healthcare Cost", "OOP Cost", "Premiums"]])  # Removed debug output
             st.line_chart(cost_df.set_index("Age")["Healthcare Cost"])
             st.success("Step 1 complete.")

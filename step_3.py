@@ -134,23 +134,36 @@ def run_step_3(tab4):
         st.markdown("This represents your family's projected average health burden over time.")
 
         # Cost Projections
+        # Insert calibrated costs if available
+        if "true_costs" in st.session_state:
+            st.session_state["step3_calibrated_costs"] = st.session_state.get("true_costs", [])
         base_premium = st.session_state.get("base_premium", 6000)
         base_oop = st.session_state.get("base_oop", 3000)
         inflation = st.session_state.get("inflation_rate", 0.03)
-        base_premium *= chronic_multiplier
-        base_oop *= chronic_multiplier
         years = len(cost_df)
-        premiums = [base_premium * ((1 + inflation) ** i) for i in range(years)]
-        oop = [base_oop * ((1 + inflation) ** i) for i in range(years)]
-        st.session_state["premiums"] = premiums
-        st.session_state["oop"] = oop
-        st.session_state["healthcare"] = [premiums[i] + oop[i] for i in range(years)]
+        if "step3_calibrated_costs" in st.session_state and st.session_state["step3_calibrated_costs"]:
+            calibrated_costs = st.session_state["step3_calibrated_costs"]
+            if len(calibrated_costs) < years:
+                calibrated_costs += [calibrated_costs[-1]] * (years - len(calibrated_costs))
+            calibrated_costs = calibrated_costs[:years]
+            total_paid = sum(calibrated_costs)
+            st.session_state["healthcare"] = calibrated_costs
+            premiums = [0] * years
+            oop = calibrated_costs
+        else:
+            base_premium *= chronic_multiplier
+            base_oop *= chronic_multiplier
+            premiums = [base_premium * ((1 + inflation) ** i) for i in range(years)]
+            oop = [base_oop * ((1 + inflation) ** i) for i in range(years)]
+            st.session_state["premiums"] = premiums
+            st.session_state["oop"] = oop
+            st.session_state["healthcare"] = [premiums[i] + oop[i] for i in range(years)]
+            total_paid = sum(premiums) + sum(oop)
         # Ensure correct age alignment for downstream steps
         st.session_state["ages"] = list(range(user_age, user_age + years))
 
         st.subheader("📈 Healthcare Cost Projection")
         # Compute total user-paid cost (Premium + OOP)
-        total_paid = sum(premiums) + sum(oop)
         st.markdown(f"💰 **Estimated Lifetime Payments (Premium + OOP)**: ${total_paid:,.0f}")
         st.session_state["step3_calibrated_costs"] = st.session_state.get("step3_calibrated_costs", [])
         if not cost_df.empty:

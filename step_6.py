@@ -141,6 +141,8 @@ def run_step_6(tab7):
         ages = cost_df["Age"].tolist()
         cv_score = profile.get("cv_risk_score", 0)
         # Retrieve calibrated_costs from Step 3 session state for consistency
+        if "true_costs" in st.session_state:
+            st.session_state["step3_calibrated_costs"] = st.session_state.get("true_costs", [])
         calibrated_costs = st.session_state.get("step3_calibrated_costs", [])
         if not calibrated_costs:
             st.error("Calibrated cost data from Step 3 is missing. Please return to Step 3 and rerun the simulation.")
