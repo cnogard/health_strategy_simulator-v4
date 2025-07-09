@@ -174,13 +174,18 @@ def run_step_6(tab7):
 
         # --- Bar Chart: Lifetime Paid vs. True Cost ---
         import matplotlib.pyplot as plt
-        fig, ax = plt.subplots(figsize=(6, 4))
+        import matplotlib.ticker as ticker
+        fig, ax = plt.subplots(figsize=(7, 5))
         bars = ax.bar(["What You Paid", "True Care Cost"], [lifetime_paid, lifetime_true_cost], color=["#2a7cba", "#ba2a2a"])
         ax.set_title("Lifetime Healthcare Payments vs. Actual Cost")
+        ax.set_xlabel("Cost Category")
         ax.set_ylabel("Dollars ($)")
+        ax.grid(True, linestyle='--', alpha=0.6)
+        ax.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, _: f"${x:,.0f}"))
         for bar in bars:
             height = bar.get_height()
             ax.annotate(f"${height:,.0f}", xy=(bar.get_x() + bar.get_width() / 2, height), xytext=(0, 5), textcoords="offset points", ha='center', va='bottom')
+        fig.tight_layout()
         st.pyplot(fig)
         current_savings = st.session_state.get("current_savings", st.session_state.get("available_savings_after_retirement", st.session_state.get("savings_start", 0)))
         fund_source = st.session_state.get("capital_fund_source", "Select One")
