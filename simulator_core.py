@@ -8,31 +8,35 @@ def generate_costs(profile, care_preferences):
     ages = list(range(profile["age"], 86))
     cost_data = []
 
-    risk_score = profile.get("cv_risk_score", 0)
-    profile_type = determine_profile_type(risk_score)
-    if profile_type:
-        calibrated_costs = get_calibrated_cost_curve(profile_type, years=len(ages))
-    else:
+    profile_type = profile.get("health_profile_type", None)
+    if profile_type == "healthy":
+        calibrated_costs = get_calibrated_cost_curve("healthy", years=len(ages))
+    elif profile_type == "chronic":
+        calibrated_costs = get_calibrated_cost_curve("chronic", years=len(ages))
+    elif profile_type == "high_risk":
         calibrated_costs = estimate_high_risk_curve(years=len(ages))
+    else:
+        calibrated_costs = estimate_high_risk_curve(years=len(ages))  # fallback
 
     for i, age in enumerate(ages):
         insurance_type = profile.get("insurance_type", "None")
 
-        total_cost = calibrated_costs[i]
+        true_cost = calibrated_costs[i]  # Actual cost to treat user, used for reference only
 
+        # Estimate user payments (OOP + premium) based on insurance type
         if insurance_type == "Employer":
-            oop = total_cost * 0.15
-            premium = 1500 * ((1 + 0.03) ** i)
+            premium = 12912 * ((1 + 0.03) ** i)  # Average employee contribution
+            oop = 3300 * ((1 + 0.03) ** i)       # Typical risk-adjusted OOP
         elif insurance_type == "Marketplace":
-            oop = total_cost * 0.2
-            premium = 1800 * ((1 + 0.04) ** i)
-        else:  # Uninsured
-            oop = total_cost * 0.5
+            premium = 7200 * ((1 + 0.04) ** i)
+            oop = 4200 * ((1 + 0.04) ** i)
+        else:  # Uninsured fallback
             premium = 0
+            oop = true_cost * 0.5
 
         cost_data.append({
             "Age": age,
-            "Healthcare Cost": total_cost,
+            "True Cost": true_cost,
             "OOP": oop,
             "Premium": premium
         })

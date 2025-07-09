@@ -149,8 +149,13 @@ def run_step_3(tab4):
         st.session_state["ages"] = list(range(user_age, user_age + years))
 
         st.subheader("📈 Healthcare Cost Projection")
-        total_cost = sum(premiums) + sum(oop)
-        st.markdown(f"💰 **Estimated Lifetime Healthcare Cost**: ${total_cost:,.0f}")
+        # Compute total user-paid cost (Premium + OOP)
+        total_paid = sum(premiums) + sum(oop)
+        st.markdown(f"💰 **Estimated Lifetime Payments (Premium + OOP)**: ${total_paid:,.0f}")
+        # Show calibrated true healthcare cost if available
+        if "true_costs" in st.session_state:
+            calibrated_total_cost = sum(st.session_state["true_costs"])
+            st.markdown(f"💡 **Actual Lifetime Healthcare Cost (Calibrated)**: ${calibrated_total_cost:,.0f}")
         if not cost_df.empty:
             st.line_chart(cost_df.set_index("Age")[["OOP Cost", "Premiums"]])
 
