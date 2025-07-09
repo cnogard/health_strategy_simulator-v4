@@ -3,6 +3,7 @@ import pandas as pd
 from chronic_module import get_chronic_multiplier
 from simulator_core import generate_costs
 from cost_library import get_calibrated_cost_curve, determine_profile_type, estimate_high_risk_curve
+from cost_library import adjust_for_employer_contribution
 
 def run_step_6(tab7):
     with tab7:
@@ -127,6 +128,9 @@ def run_step_6(tab7):
 
         st.markdown("### 💰 Cash-Driven Capital Care Savings")
 
+        if "cost_df" not in st.session_state:
+            st.error("Healthcare cost data is missing. Please return to Step 4 and rerun the simulation.")
+            st.stop()
         cost_df = st.session_state.cost_df
 
         # --- Option 1 Surplus Analysis ---
@@ -142,7 +146,7 @@ def run_step_6(tab7):
         else:
             calibrated_costs = estimate_high_risk_curve(years=len(ages))
         lifetime_paid = cost_df["OOP"].sum() + cost_df["Premium"].sum()
-        lifetime_true_cost = sum(calibrated_costs)
+        lifetime_true_cost = adjust_for_employer_contribution(sum(calibrated_costs), insurance_type)
         # DEBUG: Confirm no fallback function or cost_df["Healthcare Cost"] is used to compute lifetime_true_cost
         st.code(f"DEBUG: Profile type = {profile_type}, Calibrated lifetime cost = ${lifetime_true_cost:,.0f}")
         option_1_surplus = lifetime_paid - lifetime_true_cost

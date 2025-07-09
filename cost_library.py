@@ -147,3 +147,17 @@ def estimate_high_risk_curve(years=60, base=10000, inflation=0.05):
     Placeholder cost curve for high-risk individuals (non-cardiovascular).
     """
     return [base * (1 + inflation) ** i for i in range(years)]
+
+
+# Adjust true cost curve for employer premium contributions
+def adjust_for_employer_contribution(calibrated_curve, insurance_type):
+    """
+    Adjust the true cost curve to include employer premium contributions.
+    Assumes employer covers a percentage of total premium cost.
+    """
+    if insurance_type == "Employer":
+        # Typical employer contribution ratio (e.g., 75% of premium)
+        employer_share_ratio = 0.75
+        # Apply employer share as an uplift to the true cost curve
+        return [cost * (1 + employer_share_ratio) for cost in calibrated_curve]
+    return calibrated_curve
