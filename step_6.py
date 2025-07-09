@@ -135,8 +135,12 @@ def run_step_6(tab7):
             st.error("Cost data is missing or malformed. Please revisit Step 4.")
             st.stop()
         ages = cost_df["Age"].tolist()
-        calibrated_df = generate_costs(profile, care_preferences={})
-        calibrated_costs = calibrated_df["Healthcare Cost"].tolist()
+        cv_score = profile.get("cv_risk_score", 0)
+        profile_type = determine_profile_type(cv_score)
+        if profile_type:
+            calibrated_costs = get_calibrated_cost_curve(profile_type, years=len(ages))
+        else:
+            calibrated_costs = estimate_high_risk_curve(years=len(ages))
         lifetime_paid = cost_df["OOP"].sum() + cost_df["Premium"].sum()
         lifetime_true_cost = sum(calibrated_costs)
         option_1_surplus = lifetime_paid - lifetime_true_cost
