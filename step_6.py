@@ -1,4 +1,5 @@
 import streamlit as st
+import pandas as pd
 from chronic_module import get_chronic_multiplier
 from simulator_core import generate_costs
 from cost_library import get_calibrated_cost_curve, determine_profile_type, estimate_high_risk_curve
@@ -129,6 +130,10 @@ def run_step_6(tab7):
         cost_df = st.session_state.cost_df
 
         # --- Option 1 Surplus Analysis ---
+        # Validate cost_df is a DataFrame and has necessary columns
+        if not isinstance(cost_df, pd.DataFrame) or "OOP" not in cost_df or "Premium" not in cost_df:
+            st.error("Cost data is missing or malformed. Please revisit Step 4.")
+            st.stop()
         ages = cost_df["Age"].tolist()
         calibrated_df = generate_costs(profile, care_preferences={})
         calibrated_costs = calibrated_df["Healthcare Cost"].tolist()
