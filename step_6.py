@@ -143,6 +143,8 @@ def run_step_6(tab7):
             calibrated_costs = estimate_high_risk_curve(years=len(ages))
         lifetime_paid = cost_df["OOP"].sum() + cost_df["Premium"].sum()
         lifetime_true_cost = sum(calibrated_costs)
+        # DEBUG: Confirm no fallback function or cost_df["Healthcare Cost"] is used to compute lifetime_true_cost
+        st.code(f"DEBUG: Profile type = {profile_type}, Calibrated lifetime cost = ${lifetime_true_cost:,.0f}")
         option_1_surplus = lifetime_paid - lifetime_true_cost
 
         st.subheader("🧮 Capital Strategy Validation")
