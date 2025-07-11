@@ -41,7 +41,9 @@ def run_step_2(tab3):
             else:
                 net_income_monthly_partner = 0
             net_income_monthly_user = monthly_income * (1 - est_tax_rate)
-            net_income_monthly = net_income_monthly_user + net_income_monthly_partner
+            net_income_monthly = net_income_monthly_user
+            if family_status == "family":
+                net_income_monthly += net_income_monthly_partner
             st.session_state.net_income_monthly = net_income_monthly
             st.session_state.net_income_monthly_partner = net_income_monthly_partner
             net_income_annual = net_income_monthly * 12
@@ -334,6 +336,12 @@ def run_step_2(tab3):
                     else:  # Marketplace / Self-insured
                         premium_cost = premium_first_year
 
+                    st.write("Debug Info – Monthly Net Income:", net_income_monthly)
+                    st.write("Debug Info – Monthly Premium:", premium_cost / 12)
+                    st.write("Debug Info – Monthly OOP:", oop_first_year / 12)
+                    st.write("Debug Info – Monthly Expenses:", monthly_expenses)
+                    st.write("Debug Info – Monthly Debt:", debt_monthly_payment)
+                    st.write("Debug Info – Monthly Savings:", monthly_savings_contrib)
                     available_cash = net_income_monthly - (premium_cost / 12) - (oop_first_year / 12) - monthly_expenses - debt_monthly_payment - monthly_savings_contrib
                     st.session_state.available_cash = max(0, available_cash)
 
